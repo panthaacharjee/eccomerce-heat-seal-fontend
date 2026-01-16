@@ -239,7 +239,7 @@ const Navbar: React.FC = () => {
             <p className="text-4xl cursor-pointer">
               <VscThreeBars />
             </p>
-            <p className="text-xl ml-4 cursor-pointer">
+            <p className="text-2xl ml-4 cursor-pointer">
               <FaSearch />
             </p>
           </div>
