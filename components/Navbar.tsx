@@ -238,7 +238,7 @@ const Navbar: React.FC = () => {
     <div>
       {isTabletOrMobile && (
         <div className="">
-          <div className="bg-black text-white py-3 px-2 flex justify-between items-center">
+          <div className="bg-white text-black py-1 px-2 flex justify-between items-center">
             <div className="flex items-center">
               <p className="text-4xl cursor-pointer">
                 <VscThreeBars />
