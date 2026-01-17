@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useMediaQuery } from "react-responsive";
 
 /* ============= React Icons ============= */
 import { FaBagShopping, FaChevronRight, FaXmark } from "react-icons/fa6";
@@ -34,6 +35,8 @@ interface NavItem {
 }
 
 const Navbar: React.FC = () => {
+  const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1224px)" });
+
   const [activeDropdown, setActiveDropdown] = useState<DropdownType | null>(
     null
   );
@@ -233,31 +236,33 @@ const Navbar: React.FC = () => {
 
   return (
     <div>
-      <div className="">
-        <div className="bg-black text-white py-3 px-2 flex justify-between items-center">
-          <div className="flex items-center">
-            <p className="text-4xl cursor-pointer">
-              <VscThreeBars />
-            </p>
-            <p className="text-2xl ml-4 cursor-pointer">
-              <FaSearch />
-            </p>
-          </div>
-          <div className="flex items-center">
-            <p className="text-center text-2xl font-bold mb-4 tracking-widest">
-              HETTY
-            </p>
-          </div>
-          <div className="flex items-center">
-            <p className="text-2xl ml-4">
-              <FaBagShopping />
-            </p>
-            <p className="text-3xl ml-4">
-              <MdAccountCircle />
-            </p>
+      {isTabletOrMobile && (
+        <div className="">
+          <div className="bg-black text-white py-3 px-2 flex justify-between items-center">
+            <div className="flex items-center">
+              <p className="text-4xl cursor-pointer">
+                <VscThreeBars />
+              </p>
+              <p className="text-2xl ml-4 cursor-pointer">
+                <FaSearch />
+              </p>
+            </div>
+            <div className="flex items-center">
+              <p className="text-center text-2xl font-bold mb-4 tracking-widest mt-3">
+                HETTY
+              </p>
+            </div>
+            <div className="flex items-center">
+              <p className="text-2xl ml-4">
+                <FaBagShopping />
+              </p>
+              <p className="text-3xl ml-4">
+                <MdAccountCircle />
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       <div className="relative">
         {/* Top navbar - Always show with WHITE background */}
         <div className="bg-white transition-colors duration-300">
