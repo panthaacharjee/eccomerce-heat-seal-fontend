@@ -237,29 +237,27 @@ const Navbar: React.FC = () => {
   return (
     <div>
       {isTabletOrMobile && (
-        <div className="">
-          <div className="bg-white text-black py-1 px-2 flex justify-between items-center">
-            <div className="flex items-center">
-              <p className="text-4xl cursor-pointer">
-                <VscThreeBars />
-              </p>
-              <p className="text-2xl ml-4 cursor-pointer">
-                <FaSearch />
-              </p>
-            </div>
-            <div className="flex items-center">
-              <p className="text-center text-2xl font-bold mb-4 tracking-widest mt-3">
-                HETTY
-              </p>
-            </div>
-            <div className="flex items-center">
-              <p className="text-2xl ml-4">
-                <FaBagShopping />
-              </p>
-              <p className="text-3xl ml-4">
-                <MdAccountCircle />
-              </p>
-            </div>
+        <div className="bg-white text-black px-2 flex justify-between items-center">
+          <div className="flex items-center">
+            <p className="text-4xl cursor-pointer">
+              <VscThreeBars />
+            </p>
+            <p className="text-2xl ml-4 cursor-pointer">
+              <FaSearch />
+            </p>
+          </div>
+          <div className="flex items-center">
+            <p className="text-center text-2xl font-bold mb-4 tracking-widest mt-3">
+              HETTY
+            </p>
+          </div>
+          <div className="flex items-center">
+            <p className="text-2xl ml-4">
+              <FaBagShopping />
+            </p>
+            <p className="text-3xl ml-4">
+              <MdAccountCircle />
+            </p>
           </div>
         </div>
       )}

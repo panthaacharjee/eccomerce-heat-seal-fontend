@@ -142,9 +142,8 @@ export default function Home() {
       </div>
 
       <div className="container mx-auto lg:w-8/12 flex flex-wrap items-center justify-center lg:justify-between mt-20">
-        <p className="text-md lg:text-2xl font-bold tracking-widest text-center lg:text-start">
-          Subscribe for
-          <br /> HETTY newsletters!
+        <p className="text-md lg:text-2xl font-bold tracking-widest text-center lg:text-start lg:w-[270px]">
+          Subscribe for HETTY newsletters!
         </p>
 
         <div className="mt-4 lg:mt-0">
