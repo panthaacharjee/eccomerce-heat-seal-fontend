@@ -1,10 +1,11 @@
-import Carousel from "@/components/Carousel";
+"use client";
+import Signup from "@/components/Signup";
 import React from "react";
 
 const page = () => {
   return (
     <div>
-      <Carousel />
+      <Signup />
     </div>
   );
 };

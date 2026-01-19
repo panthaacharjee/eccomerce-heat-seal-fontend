@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
+import { useRouter } from "next/navigation"; // Import useRouter for navigation
 
 /* ============= React Icons ============= */
 import { FaBagShopping, FaChevronRight, FaXmark } from "react-icons/fa6";
@@ -9,6 +10,10 @@ import { CiHeart } from "react-icons/ci";
 import { MdAccountCircle } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
 import { VscThreeBars } from "react-icons/vsc";
+
+/* ============ Component ================= */
+import ShoppingCart from "./ShoppingCart";
+import SignIn from "./SignIn";
 
 // Type definitions
 interface DropdownColumn {
@@ -35,12 +40,14 @@ interface NavItem {
 }
 
 const Navbar: React.FC = () => {
+  const router = useRouter(); // Initialize useRouter
   const isTabletOrMobile = useMediaQuery({ query: "(max-width: 1224px)" });
 
   const [activeDropdown, setActiveDropdown] = useState<DropdownType | null>(
-    null
+    null,
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(""); // State for search input
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +70,29 @@ const Navbar: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [activeDropdown]);
+
+  // Handle search submission
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Trim whitespace and check if search query is not empty
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      // Encode the search query for URL
+      const encodedQuery = encodeURIComponent(trimmedQuery);
+      // Navigate to search page with query parameter
+      router.push(`/search?q=${encodedQuery}`);
+      // Clear search input after submission
+      setSearchQuery("");
+    }
+  };
+
+  // Handle Enter key press in search input
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch(e);
+    }
+  };
 
   // Dropdown content data
   const dropdownContent: Record<DropdownType, DropdownContent> = {
@@ -237,7 +267,7 @@ const Navbar: React.FC = () => {
   return (
     <div>
       {isTabletOrMobile && (
-        <div className="bg-white text-black px-2 flex justify-between items-center">
+        <div className="bg-white border-b border-[#d6d6d6] text-black px-2 flex justify-between items-center">
           <div className="flex items-center">
             <p className="text-4xl cursor-pointer">
               <VscThreeBars />
@@ -247,9 +277,12 @@ const Navbar: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center">
-            <p className="text-center text-2xl font-bold mb-4 tracking-widest mt-3">
+            <Link
+              href={"/"}
+              className="text-center text-2xl font-bold mb-4 tracking-widest mt-3 cursor-pointer"
+            >
               HETTY
-            </p>
+            </Link>
           </div>
           <div className="flex items-center">
             <p className="text-2xl ml-4">
@@ -266,14 +299,17 @@ const Navbar: React.FC = () => {
         <div className="bg-white transition-colors duration-300">
           <div className=" hidden  container mx-auto lg:flex justify-between items-center py-3 px-4 lg:px-0">
             <div className="lg:ml-0 ml-auto lg:mx-auto">
-              <p className="text-3xl tracking-[10px] font-medium text-center lg:text-left text-black">
+              <Link
+                href={"/"}
+                className="text-3xl tracking-[10px] font-medium text-center lg:text-left text-black"
+              >
                 HEATTY
-              </p>
+              </Link>
             </div>
 
             {/* Desktop Search and Icons - Always show on desktop, hide on mobile */}
             <div className="hidden lg:block">
-              <div className="flex justify-end">
+              <form onSubmit={handleSearch} className="flex justify-end">
                 <label className="input bg-white border border-gray-300 text-black outline-none text-md">
                   <svg
                     className="h-[1em] opacity-50"
@@ -293,19 +329,22 @@ const Navbar: React.FC = () => {
                   </svg>
                   <input
                     type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     className="grow placeholder:text-black bg-transparent"
                     placeholder="Search"
                   />
                 </label>
-              </div>
+              </form>
               <div className="mt-4 flex items-center">
-                <Link
-                  href={"/cart"}
-                  className="flex items-center mr-4 text-black hover:text-gray-700 transition-colors"
+                <label
+                  htmlFor="my-drawer-5"
+                  className="cursor-pointer flex items-center mr-4 text-black hover:text-gray-700 transition-colors"
                 >
                   <FaBagShopping className="w-5 h-5" />
                   <p className="mx-2 text-xs">Shopping Cart</p>
-                </Link>
+                </label>
                 <Link
                   href={"/wishlist"}
                   className="flex items-center mr-4 text-black hover:text-gray-700 transition-colors"
@@ -313,15 +352,15 @@ const Navbar: React.FC = () => {
                   <CiHeart className="w-6 h-6" />
                   <p className="mx-2 text-xs">My Wish list</p>
                 </Link>
-                <Link
-                  href={"/signin"}
-                  className="flex items-center text-black hover:text-gray-700 transition-colors"
+                <label
+                  htmlFor="my-drawer-6"
+                  className="cursor-pointer flex items-center mr-4 text-black hover:text-gray-700 transition-colors"
                 >
                   <p className="mx-2 text-xs">Sign In</p>
-                </Link>
+                </label>
                 <p className="text-xs mx-1 text-black">Or</p>
                 <Link
-                  href={"/register"}
+                  href={"/create/account"}
                   className="flex items-center text-black hover:text-gray-700 transition-colors"
                 >
                   <p className="ml-2 text-xs">Create an Account</p>
@@ -394,7 +433,7 @@ const Navbar: React.FC = () => {
                           {column.items.map((item, itemIndex) => (
                             <li key={itemIndex}>
                               <Link
-                                href={`/category/${item
+                                href={`/collections/${item
                                   .toLowerCase()
                                   .replace(/\s+/g, "-")}`}
                                 className="text-gray-700 hover:text-black hover:underline text-base lg:text-lg transition-colors"
@@ -406,13 +445,47 @@ const Navbar: React.FC = () => {
                           ))}
                         </ul>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               </div>
             </div>
           </div>
         )}
+      </div>
+
+      {/* =============================================================== */}
+      {/*============================= DRAWER CONTENT ===================*/}
+      {/* =============================================================== */}
+
+      <div className="drawer drawer-end z-50">
+        <input id="my-drawer-5" type="checkbox" className="drawer-toggle" />
+        <div className="">{/* Page content here */}</div>
+        <div className="drawer-side">
+          <label
+            htmlFor="my-drawer-5"
+            aria-label="close sidebar"
+            className="drawer-overlay"
+          ></label>
+          <ul className="menu bg-base-200 min-h-full w-[30%] p-4">
+            <ShoppingCart />
+          </ul>
+        </div>
+      </div>
+
+      <div className="drawer drawer-end z-50">
+        <input id="my-drawer-6" type="checkbox" className="drawer-toggle" />
+        <div className="">{/* Page content here */}</div>
+        <div className="drawer-side">
+          <label
+            htmlFor="my-drawer-6"
+            aria-label="close sidebar"
+            className="drawer-overlay"
+          ></label>
+          <ul className="menu bg-base-200 min-h-full w-[30%] p-4">
+            <SignIn />
+          </ul>
+        </div>
       </div>
     </div>
   );

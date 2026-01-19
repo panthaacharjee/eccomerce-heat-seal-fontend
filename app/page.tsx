@@ -18,34 +18,42 @@ const image = [
   {
     src: Image1,
     title: "Men Flag",
+    category: "Men",
   },
   {
     src: Image2,
     title: "Women Flag",
+    category: "Women",
   },
   {
     src: Image3,
     title: "Written Flag",
+    category: "Kid",
   },
   {
     src: Image4,
     title: "Style Flag",
+    category: "Winter",
   },
   {
     src: Image5,
     title: "Men Flag",
+    category: "Men-Wear",
   },
   {
     src: Image6,
     title: "Men Flag",
+    category: "Men-accories",
   },
   {
     src: Image7,
     title: "Men Flag",
+    category: "Kid-Wear",
   },
   {
     src: Image8,
     title: "Men Flag",
+    category: "Kid-accories",
   },
 ];
 
@@ -62,7 +70,7 @@ export default function Home() {
         <div className="container mx-auto flex flex-wrap justify-center lg:justify-between mt-10 mb-20 lg:mb-0">
           {image.map((val, ind) => {
             return (
-              <Link href={"/"} key={ind}>
+              <Link href={`/collections/${val.category}`} key={ind}>
                 <div className="mt-5 w-3/12 min-w-75 bg-white rounded-lg shadow-lg overflow-hidden relative cursor-pointer">
                   <div className="relative w-full aspect-square">
                     <Image
