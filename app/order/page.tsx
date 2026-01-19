@@ -1,136 +1,588 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
-export default function OrderConfirmationPage() {
-  // Static order data
-  const order = {
-    orderId: "ORD-1735204394-ABC123",
-    items: [
-      {
-        productId: 1,
-        title: "Classic Cotton T-Shirt",
-        price: 24.99,
-        quantity: 2,
-        selectedSize: "M",
-        image:
-          "https://cdn.shopify.com/s/files/1/0305/5789/6843/files/DSC9267_b3f4c115-34e5-4785-8683-c6f128131405_360x.jpg?v=1735204394",
-        total: 49.98,
-      },
-      {
-        productId: 3,
-        title: "Stainless Steel Water Bottle",
-        price: 29.99,
-        quantity: 1,
-        selectedSize: "750ml",
-        image:
-          "https://cdn.shopify.com/s/files/1/0305/5789/6843/files/DSC9267_b3f4c115-34e5-4785-8683-c6f128131405_360x.jpg?v=1735204394",
-        total: 29.99,
-      },
-    ],
-    shippingAddress: {
-      fullName: "John Doe",
-      email: "john.doe@example.com",
-      phone: "(123) 456-7890",
-      address: "123 Main Street",
-      apartment: "Apt 4B",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "United States",
-    },
-    paymentMethod: {
-      type: "credit",
-      cardNumber: "**** **** **** 4242",
-    },
-    subtotal: 79.97,
-    shipping: 5.99,
-    tax: 6.88,
-    discount: 0,
-    total: 92.84,
-    orderDate: new Date().toISOString(),
-    status: "processing",
-  };
+interface OrderItem {
+  id: number;
+  title: string;
+  price: number;
+  quantity: number;
+  selectedSize?: string;
+  image: string;
+  total: number;
+}
 
-  // Calculate estimated delivery date (5 business days from now)
-  const estimatedDeliveryDate = new Date();
-  estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + 5);
-  const formattedDate = estimatedDeliveryDate.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
+interface DeliveryInfo {
+  firstName: string;
+  lastName: string;
+  country: string;
+  streetAddress: string;
+  apartment?: string;
+  city: string;
+  district: string;
+  postcode: string;
+  phone: string;
+  email: string;
+  password: string;
+  orderNotes?: string;
+}
+
+interface BillingInfo {
+  sameAsDelivery: boolean;
+  firstName: string;
+  lastName: string;
+  streetAddress: string;
+  apartment?: string;
+  city: string;
+  district: string;
+  postcode: string;
+  phone: string;
+  email: string;
+}
+
+interface ShippingMethod {
+  id: string;
+  name: string;
+  description: string;
+  fee: number;
+  estimatedDelivery: string;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  type: "cod" | "mobile" | "bank";
+  details?: {
+    provider?: string;
+    accountNumber?: string;
+    transactionId?: string;
+  };
+}
+
+export default function OrderPage() {
+  // Static order data in BDT
+  const [orderItems] = useState<OrderItem[]>([
+    {
+      id: 1,
+      title: "Classic Cotton T-Shirt",
+      price: 1200,
+      quantity: 2,
+      selectedSize: "M",
+      image:
+        "https://cdn.shopify.com/s/files/1/0305/5789/6843/files/DSC9267_b3f4c115-34e5-4785-8683-c6f128131405_360x.jpg?v=1735204394",
+      total: 2400,
+    },
+    {
+      id: 2,
+      title: "Stainless Steel Water Bottle",
+      price: 850,
+      quantity: 1,
+      selectedSize: "750ml",
+      image:
+        "https://cdn.shopify.com/s/files/1/0305/5789/6843/files/DSC9267_b3f4c115-34e5-4785-8683-c6f128131405_360x.jpg?v=1735204394",
+      total: 850,
+    },
+  ]);
+
+  // Delivery Information
+  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo>({
+    firstName: "",
+    lastName: "",
+    country: "Bangladesh",
+    streetAddress: "",
+    apartment: "",
+    city: "",
+    district: "",
+    postcode: "",
+    phone: "",
+    email: "",
+    password: "",
+    orderNotes: "",
   });
 
+  // Billing Information
+  const [billingInfo, setBillingInfo] = useState<BillingInfo>({
+    sameAsDelivery: true,
+    firstName: "",
+    lastName: "",
+    streetAddress: "",
+    apartment: "",
+    city: "",
+    district: "",
+    postcode: "",
+    phone: "",
+    email: "",
+  });
+
+  // Shipping Methods with fees in BDT
+  const shippingMethods: ShippingMethod[] = [
+    {
+      id: "standard",
+      name: "Standard Delivery",
+      description: "5-7 business days",
+      fee: 80, // BDT
+      estimatedDelivery: "5-7 days",
+    },
+    {
+      id: "fast",
+      name: "Fast Delivery",
+      description: "2-3 business days",
+      fee: 150, // BDT
+      estimatedDelivery: "2-3 days",
+    },
+    {
+      id: "regular",
+      name: "Regular Delivery",
+      description: "7-10 business days",
+      fee: 50, // BDT
+      estimatedDelivery: "7-10 days",
+    },
+  ];
+
+  // Payment Methods
+  const paymentMethods: PaymentMethod[] = [
+    {
+      id: "cod",
+      name: "Cash on Delivery",
+      type: "cod",
+    },
+    {
+      id: "bkash",
+      name: "bKash",
+      type: "mobile",
+      details: {
+        provider: "bKash",
+      },
+    },
+    {
+      id: "nagad",
+      name: "Nagad",
+      type: "mobile",
+      details: {
+        provider: "Nagad",
+      },
+    },
+    {
+      id: "rocket",
+      name: "Rocket",
+      type: "mobile",
+      details: {
+        provider: "Rocket",
+      },
+    },
+    {
+      id: "dutch",
+      name: "Dutch Bangla Bank",
+      type: "bank",
+      details: {
+        provider: "Dutch Bangla Bank",
+      },
+    },
+    {
+      id: "city",
+      name: "City Bank",
+      type: "bank",
+      details: {
+        provider: "City Bank",
+      },
+    },
+    {
+      id: "brac",
+      name: "BRAC Bank",
+      type: "bank",
+      details: {
+        provider: "BRAC Bank",
+      },
+    },
+  ];
+
+  // State Management
+  const [selectedShippingMethod, setSelectedShippingMethod] =
+    useState<string>("standard");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<string>("cod");
+  const [useDifferentBilling, setUseDifferentBilling] = useState(false);
+  const [mobilePaymentDetails, setMobilePaymentDetails] = useState({
+    accountNumber: "",
+    transactionId: "",
+  });
+  const [bankPaymentDetails, setBankPaymentDetails] = useState({
+    accountNumber: "",
+    transactionId: "",
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Calculate Order Totals
+  const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0);
+  const shippingFee =
+    shippingMethods.find((method) => method.id === selectedShippingMethod)
+      ?.fee || 0;
+  const tax = subtotal * 0.05; // 5% VAT for Bangladesh
+  const total = subtotal + shippingFee + tax;
+
+  // Handle Delivery Info Changes
+  const handleDeliveryInfoChange = (
+    field: keyof DeliveryInfo,
+    value: string,
+  ) => {
+    setDeliveryInfo((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    // Clear error for this field
+    if (formErrors[field]) {
+      setFormErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  // Handle Billing Info Changes
+  const handleBillingInfoChange = (
+    field: keyof BillingInfo,
+    value: string | boolean,
+  ) => {
+    setBillingInfo((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Validate Form
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Required fields
+    if (!deliveryInfo.firstName.trim())
+      errors.firstName = "First name is required";
+    if (!deliveryInfo.lastName.trim())
+      errors.lastName = "Last name is required";
+    if (!deliveryInfo.streetAddress.trim())
+      errors.streetAddress = "Street address is required";
+    if (!deliveryInfo.city.trim()) errors.city = "City is required";
+    if (!deliveryInfo.district.trim()) errors.district = "District is required";
+    if (!deliveryInfo.postcode.trim()) errors.postcode = "Postcode is required";
+    if (!deliveryInfo.phone.trim()) errors.phone = "Phone number is required";
+    if (!deliveryInfo.email.trim()) errors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(deliveryInfo.email))
+      errors.email = "Email is invalid";
+    if (!deliveryInfo.password.trim()) errors.password = "Password is required";
+    else if (deliveryInfo.password.length < 6)
+      errors.password = "Password must be at least 6 characters";
+
+    // Billing validation if different
+    if (useDifferentBilling) {
+      if (!billingInfo.firstName.trim())
+        errors.billingFirstName = "First name is required";
+      if (!billingInfo.lastName.trim())
+        errors.billingLastName = "Last name is required";
+      if (!billingInfo.streetAddress.trim())
+        errors.billingStreetAddress = "Street address is required";
+      if (!billingInfo.city.trim()) errors.billingCity = "City is required";
+      if (!billingInfo.district.trim())
+        errors.billingDistrict = "District is required";
+      if (!billingInfo.postcode.trim())
+        errors.billingPostcode = "Postcode is required";
+      if (!billingInfo.phone.trim())
+        errors.billingPhone = "Phone number is required";
+      if (!billingInfo.email.trim()) errors.billingEmail = "Email is required";
+      else if (!/\S+@\S+\.\S+/.test(billingInfo.email))
+        errors.billingEmail = "Email is invalid";
+    }
+
+    // Mobile payment validation
+    if (
+      selectedPaymentMethod === "bkash" ||
+      selectedPaymentMethod === "nagad" ||
+      selectedPaymentMethod === "rocket"
+    ) {
+      if (!mobilePaymentDetails.accountNumber.trim())
+        errors.mobileAccount = "Account number is required";
+      if (!mobilePaymentDetails.transactionId.trim())
+        errors.mobileTransaction = "Transaction ID is required";
+    }
+
+    // Bank payment validation
+    if (
+      selectedPaymentMethod === "dutch" ||
+      selectedPaymentMethod === "city" ||
+      selectedPaymentMethod === "brac"
+    ) {
+      if (!bankPaymentDetails.accountNumber.trim())
+        errors.bankAccount = "Account number is required";
+      if (!bankPaymentDetails.transactionId.trim())
+        errors.bankTransaction = "Transaction ID is required";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handle Place Order
+  const handlePlaceOrder = () => {
+    if (!validateForm()) {
+      alert("Please fill in all required fields correctly.");
+      return;
+    }
+
+    // Create order object
+    const order = {
+      orderId: `ORD-${Date.now()}`,
+      items: orderItems,
+      deliveryInfo,
+      billingInfo: useDifferentBilling ? billingInfo : null,
+      shippingMethod: shippingMethods.find(
+        (m) => m.id === selectedShippingMethod,
+      ),
+      paymentMethod: paymentMethods.find((m) => m.id === selectedPaymentMethod),
+      mobilePayment:
+        selectedPaymentMethod === "bkash" ||
+        selectedPaymentMethod === "nagad" ||
+        selectedPaymentMethod === "rocket"
+          ? mobilePaymentDetails
+          : null,
+      bankPayment:
+        selectedPaymentMethod === "dutch" ||
+        selectedPaymentMethod === "city" ||
+        selectedPaymentMethod === "brac"
+          ? bankPaymentDetails
+          : null,
+      subtotal,
+      shippingFee,
+      tax,
+      total,
+      orderDate: new Date().toISOString(),
+      currency: "BDT",
+    };
+
+    // Save order to localStorage
+    const existingOrders = localStorage.getItem("orders");
+    const orders = existingOrders ? JSON.parse(existingOrders) : [];
+    orders.unshift(order);
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    // Clear cart (in a real app, this would be in localStorage)
+    localStorage.removeItem("cart");
+
+    // Redirect to confirmation page
+    window.location.href = `/order/confirmation?orderId=${order.orderId}`;
+  };
+
+  // Bangladesh Districts
+  const bangladeshDistricts = [
+    "Dhaka",
+    "Chittagong",
+    "Rajshahi",
+    "Khulna",
+    "Barishal",
+    "Sylhet",
+    "Rangpur",
+    "Mymensingh",
+    "Comilla",
+    "Noakhali",
+    "Jessore",
+    "Narayanganj",
+    "Gazipur",
+    "Bogra",
+    "Dinajpur",
+    "Pabna",
+    "Tangail",
+    "Kushtia",
+    "Jhenaidah",
+    "Magura",
+    "Meherpur",
+    "Narail",
+    "Chuadanga",
+    "Kurigram",
+    "Sherpur",
+    "Moulvibazar",
+    "Habiganj",
+    "Sunamganj",
+    "Netrokona",
+    "Jamalpur",
+    "Sirajganj",
+    "Narsingdi",
+    "Munshiganj",
+    "Manikganj",
+    "Faridpur",
+    "Gopalganj",
+    "Madaripur",
+    "Shariatpur",
+    "Natore",
+    "Chapainawabganj",
+    "Naogaon",
+    "Joypurhat",
+    "Pirojpur",
+    "Barguna",
+    "Bhola",
+    "Lakshmipur",
+    "Feni",
+    "Chandpur",
+    "Cox's Bazar",
+    "Bandarban",
+    "Rangamati",
+    "Khagrachhari",
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-white py-8">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-10">
-            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
-              <svg
-                className="w-12 h-12 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-3">
-              Order Confirmed!
-            </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Thank you for your purchase. We've received your order and it's
-              now being processed.
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-black">Order Checkout</h1>
+            <p className="text-gray-600 mt-2">
+              Complete your purchase securely
             </p>
-            <div className="mt-4 inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="font-medium">
-                Estimated Delivery: {formattedDate}
-              </span>
-            </div>
           </div>
 
-          {/* Order Summary Card */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Order Details */}
-              <div className="lg:w-2/3 space-y-8">
-                {/* Order Info */}
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Order Details
-                    </h2>
-                    <div className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
-                      #{order.orderId}
-                    </div>
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Column - Order Form */}
+            <div className="lg:w-2/3">
+              {/* Contact Information */}
+              <div className="bg-white rounded-lg border border-gray-300 p-6 mb-6">
+                <h2 className="text-xl font-bold text-black mb-6 pb-4 border-b border-gray-300">
+                  <span className="flex items-center gap-2">
+                    <svg
+                      className="w-5 h-5 text-black"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                    Contact Information
+                  </span>
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-800 mb-2">
+                      First Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={deliveryInfo.firstName}
+                      onChange={(e) =>
+                        handleDeliveryInfoChange("firstName", e.target.value)
+                      }
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                        formErrors.firstName
+                          ? "border-red-500"
+                          : "border-gray-400"
+                      }`}
+                      placeholder="John"
+                    />
+                    {formErrors.firstName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.firstName}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <div>
+                    <label className="block text-gray-800 mb-2">
+                      Last Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={deliveryInfo.lastName}
+                      onChange={(e) =>
+                        handleDeliveryInfoChange("lastName", e.target.value)
+                      }
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                        formErrors.lastName
+                          ? "border-red-500"
+                          : "border-gray-400"
+                      }`}
+                      placeholder="Doe"
+                    />
+                    {formErrors.lastName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.lastName}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-800 mb-2">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={deliveryInfo.phone}
+                      onChange={(e) =>
+                        handleDeliveryInfoChange("phone", e.target.value)
+                      }
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                        formErrors.phone ? "border-red-500" : "border-gray-400"
+                      }`}
+                      placeholder="01XXXXXXXXX"
+                    />
+                    {formErrors.phone && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.phone}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-800 mb-2">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={deliveryInfo.email}
+                      onChange={(e) =>
+                        handleDeliveryInfoChange("email", e.target.value)
+                      }
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                        formErrors.email ? "border-red-500" : "border-gray-400"
+                      }`}
+                      placeholder="john@example.com"
+                    />
+                    {formErrors.email && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-800 mb-2">
+                      Password <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={deliveryInfo.password}
+                        onChange={(e) =>
+                          handleDeliveryInfoChange("password", e.target.value)
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                          formErrors.password
+                            ? "border-red-500"
+                            : "border-gray-400"
+                        }`}
+                        placeholder="Create a password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-gray-600 hover:text-black"
+                      >
+                        {showPassword ? (
                           <svg
-                            className="w-5 h-5 text-gray-500"
+                            className="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -139,39 +591,489 @@ export default function OrderConfirmationPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
                             />
                           </svg>
-                          Order Information
-                        </h3>
-                        <div className="space-y-3">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Order Date:</span>
-                            <span className="font-medium">
-                              {new Date(order.orderDate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                },
+                        ) : (
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    {formErrors.password && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.password}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Delivery Information */}
+              <div className="bg-white rounded-lg border border-gray-300 p-6 mb-6">
+                <h2 className="text-xl font-bold text-black mb-6 pb-4 border-b border-gray-300">
+                  <span className="flex items-center gap-2">
+                    <svg
+                      className="w-5 h-5 text-black"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                      />
+                    </svg>
+                    Delivery Information
+                  </span>
+                </h2>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-gray-800 mb-2">
+                      Country <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={deliveryInfo.country}
+                      onChange={(e) =>
+                        handleDeliveryInfoChange("country", e.target.value)
+                      }
+                      className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition"
+                    >
+                      <option value="Bangladesh">Bangladesh</option>
+                      <option value="Other">Other Country</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-800 mb-2">
+                      Street Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={deliveryInfo.streetAddress}
+                      onChange={(e) =>
+                        handleDeliveryInfoChange(
+                          "streetAddress",
+                          e.target.value,
+                        )
+                      }
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                        formErrors.streetAddress
+                          ? "border-red-500"
+                          : "border-gray-400"
+                      }`}
+                      placeholder="House 123, Road 456"
+                    />
+                    {formErrors.streetAddress && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formErrors.streetAddress}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-800 mb-2">
+                      Apartment, suite, etc. (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={deliveryInfo.apartment || ""}
+                      onChange={(e) =>
+                        handleDeliveryInfoChange("apartment", e.target.value)
+                      }
+                      className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition"
+                      placeholder="Apartment, floor, etc."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-gray-800 mb-2">
+                        City <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={deliveryInfo.city}
+                        onChange={(e) =>
+                          handleDeliveryInfoChange("city", e.target.value)
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                          formErrors.city ? "border-red-500" : "border-gray-400"
+                        }`}
+                        placeholder="Dhaka"
+                      />
+                      {formErrors.city && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.city}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-800 mb-2">
+                        District <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={deliveryInfo.district}
+                        onChange={(e) =>
+                          handleDeliveryInfoChange("district", e.target.value)
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                          formErrors.district
+                            ? "border-red-500"
+                            : "border-gray-400"
+                        }`}
+                      >
+                        <option value="">Select District</option>
+                        {bangladeshDistricts.map((district) => (
+                          <option key={district} value={district}>
+                            {district}
+                          </option>
+                        ))}
+                      </select>
+                      {formErrors.district && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.district}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-800 mb-2">
+                        Postcode <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={deliveryInfo.postcode}
+                        onChange={(e) =>
+                          handleDeliveryInfoChange("postcode", e.target.value)
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                          formErrors.postcode
+                            ? "border-red-500"
+                            : "border-gray-400"
+                        }`}
+                        placeholder="1200"
+                      />
+                      {formErrors.postcode && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.postcode}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-800 mb-2">
+                      Order Notes (Optional)
+                    </label>
+                    <textarea
+                      value={deliveryInfo.orderNotes || ""}
+                      onChange={(e) =>
+                        handleDeliveryInfoChange("orderNotes", e.target.value)
+                      }
+                      className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition resize-none"
+                      rows={3}
+                      placeholder="Special instructions for delivery, etc."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Shipping Method */}
+              <div className="bg-white rounded-lg border border-gray-300 p-6 mb-6">
+                <h2 className="text-xl font-bold text-black mb-6 pb-4 border-b border-gray-300">
+                  <span className="flex items-center gap-2">
+                    <svg
+                      className="w-5 h-5 text-black"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-7 7-7-7"
+                      />
+                    </svg>
+                    Shipping Method
+                  </span>
+                </h2>
+
+                <div className="space-y-4">
+                  {shippingMethods.map((method) => (
+                    <label
+                      key={method.id}
+                      className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all ${
+                        selectedShippingMethod === method.id
+                          ? "border-black bg-gray-100"
+                          : "border-gray-300 hover:border-gray-600"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <input
+                          type="radio"
+                          name="shippingMethod"
+                          value={method.id}
+                          checked={selectedShippingMethod === method.id}
+                          onChange={(e) =>
+                            setSelectedShippingMethod(e.target.value)
+                          }
+                          className="w-4 h-4 text-black"
+                        />
+                        <div className="ml-3">
+                          <span className="font-medium text-black">
+                            {method.name}
+                          </span>
+                          <p className="text-sm text-gray-600">
+                            {method.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-black">
+                          {method.fee}৳
+                        </span>
+                        <p className="text-sm text-gray-600">
+                          {method.estimatedDelivery}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div className="bg-white rounded-lg border border-gray-300 p-6 mb-6">
+                <h2 className="text-xl font-bold text-black mb-6 pb-4 border-b border-gray-300">
+                  <span className="flex items-center gap-2">
+                    <svg
+                      className="w-5 h-5 text-black"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                      />
+                    </svg>
+                    Payment Method
+                  </span>
+                </h2>
+
+                <div className="space-y-6">
+                  {/* Cash on Delivery */}
+                  <div>
+                    <h3 className="font-semibold text-black mb-3">
+                      Cash on Delivery
+                    </h3>
+                    <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:border-gray-600">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="cod"
+                        checked={selectedPaymentMethod === "cod"}
+                        onChange={(e) =>
+                          setSelectedPaymentMethod(e.target.value)
+                        }
+                        className="w-4 h-4 text-black"
+                      />
+                      <div className="ml-3">
+                        <span className="font-medium text-black">
+                          Cash on Delivery
+                        </span>
+                        <p className="text-sm text-gray-600">
+                          Pay when you receive the product
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Mobile Payment */}
+                  <div>
+                    <h3 className="font-semibold text-black mb-3">
+                      Mobile Payment
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {paymentMethods
+                        .filter((method) => method.type === "mobile")
+                        .map((method) => (
+                          <label
+                            key={method.id}
+                            className={`flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition-all ${
+                              selectedPaymentMethod === method.id
+                                ? "border-black bg-gray-100"
+                                : "border-gray-300 hover:border-gray-600"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value={method.id}
+                              checked={selectedPaymentMethod === method.id}
+                              onChange={(e) =>
+                                setSelectedPaymentMethod(e.target.value)
+                              }
+                              className="sr-only"
+                            />
+                            <div className="w-10 h-10 mb-2">
+                              {method.id === "bkash" && (
+                                <div className="w-full h-full bg-black rounded-full flex items-center justify-center text-white font-bold">
+                                  bK
+                                </div>
                               )}
+                              {method.id === "nagad" && (
+                                <div className="w-full h-full bg-gray-800 rounded-full flex items-center justify-center text-white font-bold">
+                                  N
+                                </div>
+                              )}
+                              {method.id === "rocket" && (
+                                <div className="w-full h-full bg-gray-700 rounded-full flex items-center justify-center text-white font-bold">
+                                  R
+                                </div>
+                              )}
+                            </div>
+                            <span className="font-medium text-black text-sm">
+                              {method.name}
                             </span>
+                          </label>
+                        ))}
+                    </div>
+
+                    {/* Mobile Payment Details */}
+                    {(selectedPaymentMethod === "bkash" ||
+                      selectedPaymentMethod === "nagad" ||
+                      selectedPaymentMethod === "rocket") && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-300">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              Account Number{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={mobilePaymentDetails.accountNumber}
+                              onChange={(e) =>
+                                setMobilePaymentDetails((prev) => ({
+                                  ...prev,
+                                  accountNumber: e.target.value,
+                                }))
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.mobileAccount
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="01XXXXXXXXX"
+                            />
+                            {formErrors.mobileAccount && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.mobileAccount}
+                              </p>
+                            )}
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Order Status:</span>
-                            <span className="font-medium px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                              {order.status.charAt(0).toUpperCase() +
-                                order.status.slice(1)}
-                            </span>
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              Transaction ID{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={mobilePaymentDetails.transactionId}
+                              onChange={(e) =>
+                                setMobilePaymentDetails((prev) => ({
+                                  ...prev,
+                                  transactionId: e.target.value,
+                                }))
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.mobileTransaction
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="TRX123456789"
+                            />
+                            {formErrors.mobileTransaction && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.mobileTransaction}
+                              </p>
+                            )}
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">
-                              Payment Method:
-                            </span>
-                            <span className="font-medium flex items-center gap-2">
+                        </div>
+                        <p className="mt-3 text-sm text-gray-600">
+                          Please make the payment to our{" "}
+                          {
+                            paymentMethods.find(
+                              (m) => m.id === selectedPaymentMethod,
+                            )?.name
+                          }{" "}
+                          account and enter the details above.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bank Payment */}
+                  <div>
+                    <h3 className="font-semibold text-black mb-3">
+                      Bank Payment
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {paymentMethods
+                        .filter((method) => method.type === "bank")
+                        .map((method) => (
+                          <label
+                            key={method.id}
+                            className={`flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition-all ${
+                              selectedPaymentMethod === method.id
+                                ? "border-black bg-gray-100"
+                                : "border-gray-300 hover:border-gray-600"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value={method.id}
+                              checked={selectedPaymentMethod === method.id}
+                              onChange={(e) =>
+                                setSelectedPaymentMethod(e.target.value)
+                              }
+                              className="sr-only"
+                            />
+                            <div className="w-10 h-10 mb-2 bg-gray-100 rounded-full flex items-center justify-center">
                               <svg
-                                className="w-5 h-5 text-gray-500"
+                                className="w-6 h-6 text-black"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -183,185 +1085,520 @@ export default function OrderConfirmationPage() {
                                   d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
                                 />
                               </svg>
-                              {order.paymentMethod.type
-                                .charAt(0)
-                                .toUpperCase() +
-                                order.paymentMethod.type.slice(1)}{" "}
-                              Card
+                            </div>
+                            <span className="font-medium text-black text-sm">
+                              {method.name}
                             </span>
-                          </div>
-                        </div>
-                      </div>
+                          </label>
+                        ))}
                     </div>
 
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <svg
-                            className="w-5 h-5 text-gray-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    {/* Bank Payment Details */}
+                    {(selectedPaymentMethod === "dutch" ||
+                      selectedPaymentMethod === "city" ||
+                      selectedPaymentMethod === "brac") && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-300">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              Account Number{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={bankPaymentDetails.accountNumber}
+                              onChange={(e) =>
+                                setBankPaymentDetails((prev) => ({
+                                  ...prev,
+                                  accountNumber: e.target.value,
+                                }))
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.bankAccount
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="123456789"
                             />
-                          </svg>
-                          Shipping Information
-                        </h3>
-                        <div className="space-y-2">
-                          <p className="text-gray-700 font-medium">
-                            {order.shippingAddress.fullName}
-                          </p>
-                          <p className="text-gray-700">
-                            {order.shippingAddress.address}
-                          </p>
-                          <p className="text-gray-700">
-                            {order.shippingAddress.apartment}
-                          </p>
-                          <p className="text-gray-700">
-                            {order.shippingAddress.city},{" "}
-                            {order.shippingAddress.state}{" "}
-                            {order.shippingAddress.zipCode}
-                          </p>
-                          <p className="text-gray-700">
-                            {order.shippingAddress.country}
-                          </p>
-                          <div className="pt-2">
-                            <p className="text-gray-700">
-                              {order.shippingAddress.phone}
-                            </p>
-                            <p className="text-gray-700">
-                              {order.shippingAddress.email}
-                            </p>
+                            {formErrors.bankAccount && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.bankAccount}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              Transaction ID{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={bankPaymentDetails.transactionId}
+                              onChange={(e) =>
+                                setBankPaymentDetails((prev) => ({
+                                  ...prev,
+                                  transactionId: e.target.value,
+                                }))
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.bankTransaction
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="TRX123456789"
+                            />
+                            {formErrors.bankTransaction && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.bankTransaction}
+                              </p>
+                            )}
                           </div>
                         </div>
+                        <p className="mt-3 text-sm text-gray-600">
+                          Please make the payment to our{" "}
+                          {
+                            paymentMethods.find(
+                              (m) => m.id === selectedPaymentMethod,
+                            )?.name
+                          }{" "}
+                          account and enter the details above.
+                        </p>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
+              </div>
 
-                {/* Order Items */}
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-6 text-xl">
-                    Order Items
-                  </h3>
-                  <div className="space-y-6">
-                    {order.items.map((item, index) => (
+              {/* Billing Address */}
+              <div className="bg-white rounded-lg border border-gray-300 p-6 mb-6">
+                <h2 className="text-xl font-bold text-black mb-6 pb-4 border-b border-gray-300">
+                  <span className="flex items-center gap-2">
+                    <svg
+                      className="w-5 h-5 text-black"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    Billing Address
+                  </span>
+                </h2>
+
+                <div className="space-y-4">
+                  <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:border-gray-600">
+                    <input
+                      type="radio"
+                      checked={!useDifferentBilling}
+                      onChange={() => {
+                        setUseDifferentBilling(false);
+                        setBillingInfo((prev) => ({
+                          ...prev,
+                          sameAsDelivery: true,
+                        }));
+                      }}
+                      className="w-4 h-4 text-black"
+                    />
+                    <div className="ml-3">
+                      <span className="font-medium text-black">
+                        Same as delivery address
+                      </span>
+                      <p className="text-sm text-gray-600">
+                        Use the delivery address for billing
+                      </p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:border-gray-600">
+                    <input
+                      type="radio"
+                      checked={useDifferentBilling}
+                      onChange={() => {
+                        setUseDifferentBilling(true);
+                        setBillingInfo((prev) => ({
+                          ...prev,
+                          sameAsDelivery: false,
+                        }));
+                      }}
+                      className="w-4 h-4 text-black"
+                    />
+                    <div className="ml-3">
+                      <span className="font-medium text-black">
+                        Use a different billing address
+                      </span>
+                      <p className="text-sm text-gray-600">
+                        Enter a different address for billing
+                      </p>
+                    </div>
+                  </label>
+
+                  {useDifferentBilling && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-300">
+                      <h3 className="font-semibold text-black mb-4">
+                        Billing Information
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              First Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={billingInfo.firstName}
+                              onChange={(e) =>
+                                handleBillingInfoChange(
+                                  "firstName",
+                                  e.target.value,
+                                )
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.billingFirstName
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="John"
+                            />
+                            {formErrors.billingFirstName && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.billingFirstName}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              Last Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={billingInfo.lastName}
+                              onChange={(e) =>
+                                handleBillingInfoChange(
+                                  "lastName",
+                                  e.target.value,
+                                )
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.billingLastName
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="Doe"
+                            />
+                            {formErrors.billingLastName && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.billingLastName}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-800 mb-2">
+                            Street Address{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={billingInfo.streetAddress}
+                            onChange={(e) =>
+                              handleBillingInfoChange(
+                                "streetAddress",
+                                e.target.value,
+                              )
+                            }
+                            className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                              formErrors.billingStreetAddress
+                                ? "border-red-500"
+                                : "border-gray-400"
+                            }`}
+                            placeholder="House 123, Road 456"
+                          />
+                          {formErrors.billingStreetAddress && (
+                            <p className="mt-1 text-sm text-red-600">
+                              {formErrors.billingStreetAddress}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-800 mb-2">
+                            Apartment, suite, etc. (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            value={billingInfo.apartment || ""}
+                            onChange={(e) =>
+                              handleBillingInfoChange(
+                                "apartment",
+                                e.target.value,
+                              )
+                            }
+                            className="w-full px-4 py-3 border border-gray-400 rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition"
+                            placeholder="Apartment, floor, etc."
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              City <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={billingInfo.city}
+                              onChange={(e) =>
+                                handleBillingInfoChange("city", e.target.value)
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.billingCity
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="Dhaka"
+                            />
+                            {formErrors.billingCity && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.billingCity}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              District <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              value={billingInfo.district}
+                              onChange={(e) =>
+                                handleBillingInfoChange(
+                                  "district",
+                                  e.target.value,
+                                )
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.billingDistrict
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                            >
+                              <option value="">Select District</option>
+                              {bangladeshDistricts.map((district) => (
+                                <option key={district} value={district}>
+                                  {district}
+                                </option>
+                              ))}
+                            </select>
+                            {formErrors.billingDistrict && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.billingDistrict}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              Postcode <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={billingInfo.postcode}
+                              onChange={(e) =>
+                                handleBillingInfoChange(
+                                  "postcode",
+                                  e.target.value,
+                                )
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.billingPostcode
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="1200"
+                            />
+                            {formErrors.billingPostcode && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.billingPostcode}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              Phone Number{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="tel"
+                              value={billingInfo.phone}
+                              onChange={(e) =>
+                                handleBillingInfoChange("phone", e.target.value)
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.billingPhone
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="01XXXXXXXXX"
+                            />
+                            {formErrors.billingPhone && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.billingPhone}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-gray-800 mb-2">
+                              Email Address{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="email"
+                              value={billingInfo.email}
+                              onChange={(e) =>
+                                handleBillingInfoChange("email", e.target.value)
+                              }
+                              className={`w-full px-4 py-3 border rounded-lg focus:ring-1 focus:ring-black focus:border-black outline-none transition ${
+                                formErrors.billingEmail
+                                  ? "border-red-500"
+                                  : "border-gray-400"
+                              }`}
+                              placeholder="john@example.com"
+                            />
+                            {formErrors.billingEmail && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {formErrors.billingEmail}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Complete Order Button */}
+              <div className="sticky bottom-0 bg-white rounded-lg border border-gray-300 p-6">
+                <button
+                  onClick={handlePlaceOrder}
+                  className="w-full py-4 bg-black text-white font-bold text-lg rounded-lg hover:bg-gray-800 transition-all duration-300 shadow hover:shadow-lg"
+                >
+                  Complete Order • {total}৳
+                </button>
+                <p className="text-center text-gray-600 text-sm mt-3">
+                  By completing your order, you agree to our{" "}
+                  <a href="/terms" className="text-black hover:underline">
+                    Terms of Service
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy" className="text-black hover:underline">
+                    Privacy Policy
+                  </a>
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column - Order Summary */}
+            <div className="lg:w-1/3">
+              <div className="sticky top-8">
+                <div className="bg-white rounded-lg border border-gray-300 p-6 mb-6">
+                  <h2 className="text-xl font-bold text-black mb-6 pb-4 border-b border-gray-300">
+                    Order Summary
+                  </h2>
+
+                  {/* Order Items */}
+                  <div className="space-y-4 mb-6 max-h-80 overflow-y-auto">
+                    {orderItems.map((item) => (
                       <div
-                        key={index}
-                        className="flex items-center p-4 border border-gray-200 rounded-xl hover:border-gray-300 transition-colors"
+                        key={item.id}
+                        className="flex items-center pb-4 border-b border-gray-200"
                       >
-                        <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                           <img
                             src={item.image}
                             alt={item.title}
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div className="ml-6 flex-1">
-                          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                            <div>
-                              <h4 className="font-semibold text-gray-900 text-lg">
-                                {item.title}
-                              </h4>
-                              {item.selectedSize && (
-                                <p className="text-gray-600 mt-1">
-                                  Size:{" "}
-                                  <span className="font-medium">
-                                    {item.selectedSize}
-                                  </span>
-                                </p>
-                              )}
+                        <div className="ml-4 flex-1">
+                          <h3 className="font-medium text-black">
+                            {item.title}
+                          </h3>
+                          {item.selectedSize && (
+                            <p className="text-sm text-gray-600">
+                              Size: {item.selectedSize}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between mt-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600">
+                                Qty: {item.quantity}
+                              </span>
+                              <span className="text-gray-400">×</span>
+                              <span className="font-medium">{item.price}৳</span>
                             </div>
-                            <div className="flex items-center gap-8">
-                              <div className="text-center">
-                                <p className="text-gray-600 text-sm mb-1">
-                                  Quantity
-                                </p>
-                                <div className="flex items-center border border-gray-300 rounded-lg">
-                                  <span className="px-4 py-2 bg-gray-50 text-gray-900 font-medium">
-                                    {item.quantity}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-gray-600 text-sm mb-1">
-                                  Price
-                                </p>
-                                <p className="text-xl font-bold text-gray-900">
-                                  ${item.total.toFixed(2)}
-                                </p>
-                              </div>
-                            </div>
+                            <span className="font-bold text-black">
+                              {item.total}৳
+                            </span>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              </div>
 
-              {/* Order Summary */}
-              <div className="lg:w-1/3">
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 sticky top-8">
-                  <h3 className="font-bold text-gray-900 text-xl mb-6">
-                    Order Summary
-                  </h3>
+                  {/* Order Totals */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span className="font-medium">{subtotal}৳</span>
+                    </div>
 
-                  <div className="space-y-4 mb-8">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">
-                        Subtotal ({order.items.length} items)
-                      </span>
-                      <span className="font-medium">
-                        ${order.subtotal.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Shipping</span>
-                      <span className="font-medium">
-                        ${order.shipping.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tax</span>
-                      <span className="font-medium">
-                        ${order.tax.toFixed(2)}
-                      </span>
-                    </div>
-                    {order.discount > 0 && (
-                      <div className="flex justify-between text-green-600">
-                        <span>Discount</span>
-                        <span className="font-medium">
-                          -${order.discount.toFixed(2)}
-                        </span>
+                      <div>
+                        <span className="text-gray-600">Shipping</span>
+                        <p className="text-xs text-gray-500">
+                          {
+                            shippingMethods.find(
+                              (m) => m.id === selectedShippingMethod,
+                            )?.name
+                          }
+                        </p>
                       </div>
-                    )}
+                      <span className="font-medium">{shippingFee}৳</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tax (5% VAT)</span>
+                      <span className="font-medium">{tax.toFixed(0)}৳</span>
+                    </div>
+
                     <div className="border-t border-gray-300 pt-4">
-                      <div className="flex justify-between text-lg font-bold text-gray-900">
+                      <div className="flex justify-between text-lg font-bold text-black">
                         <span>Total</span>
-                        <span className="text-2xl">
-                          ${order.total.toFixed(2)}
-                        </span>
+                        <span>{total}৳</span>
                       </div>
-                      <p className="text-gray-500 text-sm mt-2">USD</p>
+                      <p className="text-gray-500 text-sm mt-1">
+                        In Bangladeshi Taka (BDT)
+                      </p>
                     </div>
                   </div>
 
-                  {/* Order Progress */}
-                  <div className="mb-8">
-                    <h4 className="font-semibold text-gray-900 mb-4">
-                      Order Progress
-                    </h4>
-                    <div className="space-y-4">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                  {/* Payment Method Display */}
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-300">
+                    <h3 className="font-semibold text-black mb-2">
+                      Selected Payment
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        {selectedPaymentMethod === "cod" && (
                           <svg
-                            className="w-4 h-4 text-white"
+                            className="w-4 h-4 text-black"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -370,55 +1607,106 @@ export default function OrderConfirmationPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M5 13l4 4L19 7"
+                              d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
                             />
                           </svg>
-                        </div>
-                        <div className="ml-3">
-                          <p className="font-medium text-gray-900">
-                            Order Confirmed
-                          </p>
-                          <p className="text-sm text-gray-600">Just now</p>
-                        </div>
+                        )}
+                        {(selectedPaymentMethod === "bkash" ||
+                          selectedPaymentMethod === "nagad" ||
+                          selectedPaymentMethod === "rocket") && (
+                          <svg
+                            className="w-4 h-4 text-black"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                            />
+                          </svg>
+                        )}
+                        {(selectedPaymentMethod === "dutch" ||
+                          selectedPaymentMethod === "city" ||
+                          selectedPaymentMethod === "brac") && (
+                          <svg
+                            className="w-4 h-4 text-black"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                            />
+                          </svg>
+                        )}
                       </div>
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 border-2 border-blue-200 flex items-center justify-center flex-shrink-0">
-                          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                        </div>
-                        <div className="ml-3">
-                          <p className="font-medium text-gray-900">
-                            Processing
-                          </p>
-                          <p className="text-sm text-gray-600">Next step</p>
-                        </div>
+                      <span className="font-medium text-black">
+                        {
+                          paymentMethods.find(
+                            (m) => m.id === selectedPaymentMethod,
+                          )?.name
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Help & Support */}
+                <div className="bg-gray-50 rounded-lg border border-gray-300 p-6">
+                  <h3 className="font-bold text-black mb-4">Need Help?</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start">
+                      <svg
+                        className="w-5 h-5 text-black mt-1 mr-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                        />
+                      </svg>
+                      <div>
+                        <p className="font-medium text-black">Call Us</p>
+                        <p className="text-gray-600">+880 1234 567890</p>
                       </div>
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center flex-shrink-0">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        </div>
-                        <div className="ml-3">
-                          <p className="font-medium text-gray-900">Shipped</p>
-                          <p className="text-sm text-gray-600">In 1-2 days</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center flex-shrink-0">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        </div>
-                        <div className="ml-3">
-                          <p className="font-medium text-gray-900">Delivered</p>
-                          <p className="text-sm text-gray-600">
-                            By {formattedDate}
-                          </p>
-                        </div>
+                    </div>
+                    <div className="flex items-start">
+                      <svg
+                        className="w-5 h-5 text-black mt-1 mr-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                      <div>
+                        <p className="font-medium text-black">Email Us</p>
+                        <p className="text-gray-600">support@example.com</p>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Download Invoice */}
-                  <button
-                    onClick={() => window.print()}
-                    className="w-full py-3 border-2 border-gray-900 text-gray-900 font-semibold rounded-lg hover:bg-gray-900 hover:text-white transition-colors flex items-center justify-center gap-2"
+                {/* Return to Cart */}
+                <div className="mt-6">
+                  <Link
+                    href="/cart"
+                    className="flex items-center justify-center gap-2 text-black hover:text-gray-700 transition-colors"
                   >
                     <svg
                       className="w-5 h-5"
@@ -430,176 +1718,13 @@ export default function OrderConfirmationPage() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"
                       />
                     </svg>
-                    Download Invoice
-                  </button>
+                    Return to Cart
+                  </Link>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Next Steps */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-              <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-2">
-                Check Your Email
-              </h3>
-              <p className="text-gray-600">
-                We've sent a confirmation email to{" "}
-                <span className="font-medium text-blue-600">
-                  {order.shippingAddress.email}
-                </span>
-                with all your order details.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border border-green-200">
-              <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-2">
-                Track Your Order
-              </h3>
-              <p className="text-gray-600">
-                You'll receive tracking information via email once your order
-                ships. Expected delivery:{" "}
-                <span className="font-medium">{formattedDate}</span>
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl p-6 border border-purple-200">
-              <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-2">
-                Need Help?
-              </h3>
-              <p className="text-gray-600">
-                Questions about your order? Contact our support team at
-                <span className="font-medium text-purple-600">
-                  {" "}
-                  support@example.com
-                </span>
-                or call <span className="font-medium">(123) 456-7890</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              href="/"
-              className="flex-1 py-4 px-8 bg-gradient-to-r from-gray-900 to-black text-white font-semibold rounded-xl hover:from-gray-800 hover:to-gray-900 transition-all duration-300 shadow-lg hover:shadow-xl text-center flex items-center justify-center gap-3"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                />
-              </svg>
-              Continue Shopping
-            </Link>
-
-            <Link
-              href="/orders"
-              className="flex-1 py-4 px-8 border-2 border-gray-300 text-gray-800 font-semibold rounded-xl hover:border-gray-900 hover:bg-gray-50 transition-all duration-300 text-center flex items-center justify-center gap-3"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-              View My Orders
-            </Link>
-
-            <button
-              onClick={() => window.print()}
-              className="flex-1 py-4 px-8 border-2 border-blue-600 text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-all duration-300 flex items-center justify-center gap-3"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                />
-              </svg>
-              Print Receipt
-            </button>
-          </div>
-
-          {/* Footer Note */}
-          <div className="mt-12 text-center">
-            <p className="text-gray-500 text-sm">
-              Thank you for shopping with us! We appreciate your business.
-            </p>
-            <div className="mt-6 flex items-center justify-center gap-6">
-              <span className="text-gray-400">Secure Payment</span>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-400">30-Day Returns</span>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-400">Free Shipping Over $50</span>
             </div>
           </div>
         </div>
