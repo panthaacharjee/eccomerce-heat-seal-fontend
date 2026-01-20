@@ -140,7 +140,7 @@ const ShoppingCart: React.FC = () => {
   }
 
   return (
-    <div className=" bg-gray-50 ">
+    <div className=" bg-white ">
       <div className="">
         <h1 className="text-xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
         <div>
