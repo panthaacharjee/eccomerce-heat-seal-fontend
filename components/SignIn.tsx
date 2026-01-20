@@ -88,12 +88,12 @@ const SignIn = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto w-full overflow-hidden">
+    <div className="mx-auto w-full overflow-hidden">
       <AnimatePresence mode="wait">
         {authView === "forgot-password" ? (
           <motion.div
             key="forgot-password"
-            //variants={slideVariants}
+            variants={slideVariants}
             initial="initial"
             animate="animate"
             exit="exit"
@@ -103,7 +103,7 @@ const SignIn = () => {
         ) : (
           <motion.div
             key="signin"
-            //variants={slideVariants}
+            variants={slideVariants}
             initial="initial"
             animate="animate"
             exit="exit"

@@ -397,7 +397,7 @@ const Navbar: React.FC = () => {
 
       {/* DESKTOP VERSION - Keep your old navbar system */}
       {!isTabletOrMobile && (
-        <div className="relative">
+        <div className="relative hidden lg:block">
           {/* Top navbar - Always show with WHITE background */}
           <div className="bg-white transition-colors duration-300">
             <div className="container mx-auto lg:flex justify-between items-center py-3 px-4 lg:px-0">
@@ -718,7 +718,7 @@ const Navbar: React.FC = () => {
       {/* =============================================================== */}
 
       {/* Shopping Cart Drawer */}
-      <div className="drawer drawer-end z-50">
+      <div className=" drawer drawer-end z-50">
         <input id="my-drawer-5" type="checkbox" className="drawer-toggle" />
         <div className="drawer-side">
           <label
@@ -726,17 +726,19 @@ const Navbar: React.FC = () => {
             aria-label="close sidebar"
             className="drawer-overlay"
           ></label>
-          <div className="menu bg-white min-h-full w-full md:w-[400px] p-4">
+          <div className="menu bg-white h-screen no-scrollbar overflow-y-auto w-full md:w-[400px] p-4">
             {/* Add close button at top of drawer */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900"></h2>
-              <label
-                htmlFor="my-drawer-5"
-                className="cursor-pointer text-gray-600 hover:text-black"
-              >
-                <IoClose size={24} />
-              </label>
-            </div>
+            {isTabletOrMobile && (
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900"></h2>
+                <label
+                  htmlFor="my-drawer-5"
+                  className="cursor-pointer text-gray-600 hover:text-black"
+                >
+                  <IoClose size={24} />
+                </label>
+              </div>
+            )}
             <ShoppingCart />
           </div>
         </div>
@@ -752,16 +754,17 @@ const Navbar: React.FC = () => {
             className="drawer-overlay"
           ></label>
           <div className="menu bg-white min-h-full w-full md:w-[400px] p-4">
-            {/* Add close button at top of drawer */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900"></h2>
-              <label
-                htmlFor="my-drawer-6"
-                className="cursor-pointer text-gray-600 hover:text-black"
-              >
-                <IoClose size={24} />
-              </label>
-            </div>
+            {isTabletOrMobile && (
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900"></h2>
+                <label
+                  htmlFor="my-drawer-6"
+                  className="cursor-pointer text-gray-600 hover:text-black"
+                >
+                  <IoClose size={24} />
+                </label>
+              </div>
+            )}
             <SignIn />
           </div>
         </div>
@@ -778,6 +781,7 @@ const Navbar: React.FC = () => {
           ></label>
           <div className="menu bg-white min-h-full w-full md:w-[400px] p-4">
             {/* Add close button at top of drawer */}
+
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900"></h2>
               <label
@@ -787,6 +791,7 @@ const Navbar: React.FC = () => {
                 <IoClose size={24} />
               </label>
             </div>
+
             <Navmenu />
           </div>
         </div>

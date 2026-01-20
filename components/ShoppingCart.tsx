@@ -114,7 +114,7 @@ const ShoppingCart: React.FC = () => {
   // Empty cart state
   if (cartItems.length === 0) {
     return (
-      <div className="bg-gradient-to-b from-gray-50 to-white ">
+      <div className="no-scrollbar bg-gradient-to-b from-gray-50 to-white ">
         <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
             <div className="flex justify-center mb-6">

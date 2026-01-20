@@ -27,7 +27,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event bubbling
     const encodedTitle = encodeURIComponent(product.title);
-    router.push(`/single/product?q=${encodedTitle}&&productid=${product.id}`);
+    router.push(
+      `/single/product/${product.id}?q=${encodedTitle}&&productid=${product.id}`,
+    );
   };
 
   // Handle Add to Cart button click
