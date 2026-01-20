@@ -93,7 +93,7 @@ const SignIn = () => {
         {authView === "forgot-password" ? (
           <motion.div
             key="forgot-password"
-            variants={slideVariants}
+            //variants={slideVariants}
             initial="initial"
             animate="animate"
             exit="exit"
@@ -103,7 +103,7 @@ const SignIn = () => {
         ) : (
           <motion.div
             key="signin"
-            variants={slideVariants}
+            //variants={slideVariants}
             initial="initial"
             animate="animate"
             exit="exit"
