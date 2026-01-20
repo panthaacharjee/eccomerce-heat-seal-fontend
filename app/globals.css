@@ -10,13 +10,13 @@
   scrollbar-width: none;
 }
 
-.input {
+/* .input {
   @apply flex items-center gap-2 border border-gray-800 rounded-lg px-4 py-2;
 }
 
 .input input {
   @apply bg-transparent focus:outline-none w-full;
-}
+} */
 
 @keyframes fadeIn {
   from {
