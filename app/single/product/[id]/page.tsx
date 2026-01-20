@@ -254,7 +254,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(mockProducts[0]);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [viewedProducts, setViewedProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
@@ -265,7 +265,7 @@ export default function ProductDetailPage() {
   const productImageRef = useRef<HTMLDivElement>(null);
   const cartIconRef = useRef<HTMLDivElement>(null);
 
-  const productId = searchParams.get("productid");
+  const productId = searchParams.get("id");
   const productTitle = searchParams.get("q");
 
   // Calculate total price based on selected size and quantity
